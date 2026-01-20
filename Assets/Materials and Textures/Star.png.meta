@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c77cf451fb4e9a048b839c48db9d548e
+guid: 1303db5b16d6f5345969f90f6220fedb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1737579663976232920
-    second: ChatGPT Image Jan 20, 2026, 02_22_30 PM_0
+      213: 2992079085238435477
+    second: Star-Photoroom_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 64
+  spritePixelsToUnits: 256
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -126,89 +126,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ChatGPT Image Jan 20, 2026, 02_22_30 PM_0
+      name: Star-Photoroom_0
       rect:
         serializedVersion: 2
-        x: 2
-        y: 768
-        width: 510
-        height: 766
+        x: 149
+        y: 67
+        width: 425
+        height: 404
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8d7fe309f7f1d1810800000000000000
-      internalID: 1737579663976232920
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ChatGPT Image Jan 20, 2026, 02_22_30 PM_1
-      rect:
-        serializedVersion: 2
-        x: 514
-        y: 768
-        width: 510
-        height: 766
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e26a999ab328f1141a909ad7220769a1
-      internalID: -1510593110
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ChatGPT Image Jan 20, 2026, 02_22_30 PM_2
-      rect:
-        serializedVersion: 2
-        x: 2
-        y: 0
-        width: 510
-        height: 766
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 5401e09317673084b8d5d564e1607d43
-      internalID: 1614720097
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: ChatGPT Image Jan 20, 2026, 02_22_30 PM_3
-      rect:
-        serializedVersion: 2
-        x: 514
-        y: 0
-        width: 510
-        height: 766
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b15fb9901bab788498399951879e503a
-      internalID: -1406739349
+      spriteID: 59e33874310068920800000000000000
+      internalID: 2992079085238435477
       vertices: []
       indices: 
       edges: []
@@ -217,7 +151,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 645eeb4bcd84131468507fae808d94a2
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -225,14 +159,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries:
-      - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":2.0,"y":2.0},"gridSpriteSize":{"x":510.0,"y":766.0},"gridSpriteOffset":{"x":2.0,"y":2.0},"gridSpritePadding":{"x":2.0,"y":2.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+      entries: []
     nameFileIdTable:
-      ChatGPT Image Jan 20, 2026, 02_22_30 PM_0: 1737579663976232920
-      ChatGPT Image Jan 20, 2026, 02_22_30 PM_1: -1510593110
-      ChatGPT Image Jan 20, 2026, 02_22_30 PM_2: 1614720097
-      ChatGPT Image Jan 20, 2026, 02_22_30 PM_3: -1406739349
+      Star-Photoroom_0: 2992079085238435477
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
