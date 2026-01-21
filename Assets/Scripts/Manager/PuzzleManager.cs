@@ -19,6 +19,12 @@ public class PuzzleManager : MonoBehaviour
     public Button continueButton;
     public Button quitButton;
 
+    [Header("Game Settings UI")]
+    public GameObject winPanel;
+    public GameObject losePanel;
+    bool hasGameEnded = false;
+
+
     void Start()
     {
         if (backgroundImage == null || backgroundImages.Length == 0)
@@ -68,6 +74,9 @@ public class PuzzleManager : MonoBehaviour
 
     void Update()
     {
+        if (hasGameEnded)
+            return;
+
         timer += Time.deltaTime;
         if (timer >= changeInterval)
         {
