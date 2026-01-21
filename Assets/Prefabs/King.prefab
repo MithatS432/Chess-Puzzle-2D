@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5134387183009206581
+--- !u!1 &6252733754362653826
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,40 +8,40 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 330278193353629125}
-  - component: {fileID: 1758471248561958600}
-  - component: {fileID: 679268415583978331}
-  - component: {fileID: 5188484644025906989}
+  - component: {fileID: 1637844442696551690}
+  - component: {fileID: 3136439752037184472}
+  - component: {fileID: 9204137794743387823}
+  - component: {fileID: 1912997928964963329}
   m_Layer: 0
-  m_Name: PawnBlack
+  m_Name: King
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &330278193353629125
+--- !u!4 &1637844442696551690
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5134387183009206581}
+  m_GameObject: {fileID: 6252733754362653826}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.098, y: -1.468, z: 0}
-  m_LocalScale: {x: 0.522115, y: 0.522115, z: 0.522115}
+  m_LocalPosition: {x: 1.62, y: -1.05, z: 0}
+  m_LocalScale: {x: 0.18517569, y: 0.16533543, z: 0.16533543}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1758471248561958600
+--- !u!212 &3136439752037184472
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5134387183009206581}
+  m_GameObject: {fileID: 6252733754362653826}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -83,23 +83,23 @@ SpriteRenderer:
   m_SortingLayer: 1
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -9147044706525625827, guid: 714e8e71816cb304599fdc748eaa9734, type: 3}
+  m_Sprite: {fileID: 7706091928456074589, guid: 3ef3ae83d41278e4987d7b0b780c9894, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2, y: 4}
+  m_Size: {x: 2.82, y: 5.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!61 &679268415583978331
+--- !u!61 &9204137794743387823
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5134387183009206581}
+  m_GameObject: {fileID: 6252733754362653826}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -127,30 +127,30 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.30024582, y: 0.0948149}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 0.046875, z: 0, w: 0.0625}
-    pivot: {x: 0.519205, y: 0.47642025}
-    oldSize: {x: 1.4179688, y: 1.8203125}
-    newSize: {x: 2, y: 4}
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2.82, y: 5.12}
+    newSize: {x: 2.82, y: 5.12}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.3573686, y: 1.8298018}
+  m_Size: {x: 2.82, y: 5.12}
   m_EdgeRadius: 0
---- !u!114 &5188484644025906989
+--- !u!114 &1912997928964963329
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5134387183009206581}
+  m_GameObject: {fileID: 6252733754362653826}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6663ac47a7ffc6f43a1b3bd7877ebebc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChessPiece
+  pieceType: 5
   x: 0
   y: 0
-  pieceColor: 0

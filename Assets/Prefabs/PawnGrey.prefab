@@ -129,9 +129,9 @@ BoxCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0.00000011920929, y: 0.05794227}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
+    border: {x: 0, y: 0.06640625, z: 0, w: 1.015625}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 4}
+    oldSize: {x: 1.4765625, y: 1.7929688}
     newSize: {x: 2, y: 4}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -151,6 +151,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6663ac47a7ffc6f43a1b3bd7877ebebc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChessPiece
-  pieceType: 0
   x: 0
   y: 0
+  pieceColor: 2

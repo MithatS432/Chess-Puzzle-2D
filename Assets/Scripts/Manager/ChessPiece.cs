@@ -1,10 +1,17 @@
 using UnityEngine;
 
+public enum PieceColor
+{
+    Black,
+    White,
+    Gray
+}
+
 public enum PieceType
 {
-    Pawn,
-    Rook,
+    Normal,
     Knight,
+    Rook,
     Bishop,
     Queen,
     King
@@ -12,8 +19,9 @@ public enum PieceType
 
 public class ChessPiece : MonoBehaviour
 {
-    public PieceType pieceType;
-
     [HideInInspector] public int x;
     [HideInInspector] public int y;
+
+    public PieceColor pieceColor;
+    public PieceType pieceType = PieceType.Normal;
 }

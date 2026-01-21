@@ -1419,6 +1419,21 @@ MonoBehaviour:
   quitButton: {fileID: 903347066}
   winPanel: {fileID: 1338157236}
   losePanel: {fileID: 1419521120}
+  loseSound: {fileID: 8300000, guid: 93febe7c5a82a2f4ba94dcbe3ea4495b, type: 3}
+  winSound: {fileID: 8300000, guid: 8665aa30641beb54caf87a7b89a88839, type: 3}
+  moveCountText: {fileID: 2023159178}
+  levelText: {fileID: 1647345764}
+  width: 6
+  height: 5
+  pawnPrefabs:
+  - {fileID: 5134387183009206581, guid: eb3ecc56b78305141bff6958b2d02676, type: 3}
+  - {fileID: 994435135071776082, guid: 661ab0457b4c18246a96859b77c56198, type: 3}
+  - {fileID: 4491946982248043459, guid: 8ed7f8f8bc04b0a4fb54ac31e4dafed0, type: 3}
+  gridOrigin: {fileID: 1271926281}
+  gridVerticalOffset: -2.49
+  spacingMultiplier: 1.249
+  matchSound: {fileID: 8300000, guid: 03c8fe569f4c5ab4a95be39110cbef99, type: 3}
+  matchEffectPrefab: {fileID: 6609521088092039092, guid: cb124c4a9f6d9b84b9b98e4f937419d5, type: 3}
 --- !u!1 &1338157236
 GameObject:
   m_ObjectHideFlags: 0
@@ -1455,7 +1470,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 329}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1338157238
@@ -1554,6 +1569,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7750853976492821318, guid: 6a7b26737f4a19a40b5f385c66dc96a9, type: 3}
       propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7750853977139984562, guid: 6a7b26737f4a19a40b5f385c66dc96a9, type: 3}
+      propertyPath: looping
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7750853977139984562, guid: 6a7b26737f4a19a40b5f385c66dc96a9, type: 3}
@@ -1786,7 +1805,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 329}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1419521122
