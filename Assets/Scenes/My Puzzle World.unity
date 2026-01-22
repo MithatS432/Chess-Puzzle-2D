@@ -266,7 +266,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -293, y: 138}
+  m_AnchoredPosition: {x: -293, y: 306.64}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &62291223
@@ -891,16 +891,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 903347064}
-  m_LocalRotation: {x: -0, y: -0, z: 0.4421467, w: 0.8969428}
+  m_LocalRotation: {x: -0, y: -0, z: 0.42446887, w: 0.9054426}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.2355386, y: 5.065708, z: 1.2355386}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 54974850}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 52.482}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 50.234}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -370, y: -92}
+  m_AnchoredPosition: {x: -348, y: -70}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &903347066
@@ -1278,7 +1278,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 290, y: 134.95999}
+  m_AnchoredPosition: {x: 290, y: 306.64}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1202995080
@@ -1424,20 +1424,32 @@ MonoBehaviour:
   moveCountText: {fileID: 2023159178}
   levelText: {fileID: 1647345764}
   width: 6
-  height: 5
+  height: 6
+  lastSwappedA: {fileID: 0}
+  lastSwappedB: {fileID: 0}
   pawnPrefabs:
   - {fileID: 5134387183009206581, guid: eb3ecc56b78305141bff6958b2d02676, type: 3}
   - {fileID: 994435135071776082, guid: 661ab0457b4c18246a96859b77c56198, type: 3}
   - {fileID: 4491946982248043459, guid: 8ed7f8f8bc04b0a4fb54ac31e4dafed0, type: 3}
   knightPrefab: {fileID: 3108683437490700748, guid: 9ae1a636cc3052f4ebb92f4b92ee9bd3, type: 3}
   rookPrefab: {fileID: 527105398378325855, guid: 56621882c1a04de4da0af72a99e5257d, type: 3}
+  bishopPrefab: {fileID: 4450313856377972246, guid: a6c0b9a9a7792404592efaed9be20877, type: 3}
+  queenPrefab: {fileID: 962488624769997231, guid: 9e701ff238334b845be0696ba54c8e08, type: 3}
+  kingPrefab: {fileID: 6252733754362653826, guid: 5b8a978044801c54985914c63e83d58e, type: 3}
   gridOrigin: {fileID: 1271926281}
-  gridVerticalOffset: -2.49
+  gridVerticalOffset: -2.2
   spacingMultiplier: 1.249
   matchSound: {fileID: 8300000, guid: 03c8fe569f4c5ab4a95be39110cbef99, type: 3}
   knightSound: {fileID: 8300000, guid: 29a6b672d26486845a3d6118afc243ca, type: 3}
   rookSound: {fileID: 8300000, guid: 9459272762aaa40429781a12ed63ef64, type: 3}
+  bishopSound: {fileID: 8300000, guid: 926f455fd0032f64b8ccbf9a622e7934, type: 3}
+  queenSound: {fileID: 8300000, guid: 98ac6d2ff298ef941a9f0cbbdd3fb2b7, type: 3}
+  kingSound: {fileID: 8300000, guid: 1fe6e71295a5ade43bad878a451328d4, type: 3}
+  knightAttackSound: {fileID: 8300000, guid: 167232a4322ebb74a9687d764cbc1535, type: 3}
+  knightAttackEffect: {fileID: 6609521088092039092, guid: cb124c4a9f6d9b84b9b98e4f937419d5, type: 3}
   matchEffectPrefab: {fileID: 6609521088092039092, guid: cb124c4a9f6d9b84b9b98e4f937419d5, type: 3}
+  knightFlyDuration: 0.4
+  knightSpawnHeight: 2.5
 --- !u!1 &1338157236
 GameObject:
   m_ObjectHideFlags: 0
@@ -2162,7 +2174,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.61960787}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2498,7 +2510,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 3, y: 596}
+  m_AnchoredPosition: {x: 3, y: 629}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2053916739

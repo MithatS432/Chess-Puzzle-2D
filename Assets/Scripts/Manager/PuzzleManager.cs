@@ -35,12 +35,18 @@ public class PuzzleManager : MonoBehaviour
     [Header("Grid Settings")]
     public int width = 8;
     public int height = 8;
+    public ChessPiece lastSwappedA;
+    public ChessPiece lastSwappedB;
 
     public GameObject[] pawnPrefabs;
     public GameObject knightPrefab;
     public GameObject rookPrefab;
+    public GameObject bishopPrefab;
+    public GameObject queenPrefab;
+    public GameObject kingPrefab;
 
-    private ChessPiece[,] grid;
+
+    public ChessPiece[,] grid { get; private set; }
 
     public Transform gridOrigin;
 
@@ -58,6 +64,12 @@ public class PuzzleManager : MonoBehaviour
     public AudioClip matchSound;
     public AudioClip knightSound;
     public AudioClip rookSound;
+    public AudioClip bishopSound;
+    public AudioClip queenSound;
+    public AudioClip kingSound;
+
+    public AudioClip knightAttackSound;
+    public ParticleSystem knightAttackEffect;
 
 
     public ParticleSystem matchEffectPrefab;
@@ -71,6 +83,12 @@ public class PuzzleManager : MonoBehaviour
     private bool isDragging = false;
     private Vector2 dragStartPos;
     private float minDragDistance = 0.3f;
+
+
+    [Header("Knight Flight Settings")]
+    public float knightFlyDuration = 0.4f;
+    public float knightSpawnHeight = 2.5f;
+
 
     void Start()
     {
@@ -401,11 +419,100 @@ public class PuzzleManager : MonoBehaviour
 
     IEnumerator DestroyMatches(List<ChessPiece> matches)
     {
+        if (lastSwappedA != null && lastSwappedA.pieceType == PieceType.Rook)
+        {
+            yield return StartCoroutine(ActivateRookPower(lastSwappedA));
+            yield break;
+        }
+
+        if (lastSwappedB != null && lastSwappedB.pieceType == PieceType.Rook)
+        {
+            yield return StartCoroutine(ActivateRookPower(lastSwappedB));
+            yield break;
+        }
+
+
         if (matchSound != null)
             AudioSource.PlayClipAtPoint(matchSound, Camera.main.transform.position);
 
         List<ChessPiece> squareMatches = Find2x2SquareInMatches(matches);
         List<ChessPiece> rookMatch = FindRookMatches();
+        List<ChessPiece> bishopMatch = FindBishopMatches();
+        List<ChessPiece> queenMatch = FindQueenMatches();
+        List<ChessPiece> kingMatch = FindKingMatches();
+
+        if (kingMatch.Count == 4)
+        {
+            ChessPiece origin = kingMatch[0];
+            int kx = origin.x;
+            int ky = origin.y;
+            PieceColor color = origin.pieceColor;
+
+            foreach (ChessPiece p in kingMatch)
+            {
+                grid[p.x, p.y] = null;
+                Destroy(p.gameObject);
+            }
+            if (matchEffectPrefab != null)
+            {
+                ParticleSystem effect = Instantiate(matchEffectPrefab,
+                    origin.transform.position,
+                    Quaternion.identity);
+                Destroy(effect.gameObject, 2f);
+            }
+            yield return new WaitForSeconds(0.15f);
+            SpawnKing(kx, ky, color);
+            yield break;
+        }
+
+
+        if (queenMatch.Count > 0)
+        {
+            ChessPiece center = queenMatch[0];
+            int qx = center.x;
+            int qy = center.y;
+            PieceColor color = center.pieceColor;
+
+            foreach (ChessPiece p in queenMatch)
+            {
+                grid[p.x, p.y] = null;
+                Destroy(p.gameObject);
+            }
+            if (matchEffectPrefab != null)
+            {
+                ParticleSystem effect = Instantiate(matchEffectPrefab,
+                    center.transform.position,
+                    Quaternion.identity);
+                Destroy(effect.gameObject, 2f);
+            }
+            yield return new WaitForSeconds(0.15f);
+            SpawnQueen(qx, qy, color);
+            yield break;
+        }
+
+        if (bishopMatch.Count == 5)
+        {
+            ChessPiece center = bishopMatch[2];
+            int bx = center.x;
+            int by = center.y;
+            PieceColor color = center.pieceColor;
+
+            foreach (ChessPiece p in bishopMatch)
+            {
+                grid[p.x, p.y] = null;
+                Destroy(p.gameObject);
+            }
+            if (matchEffectPrefab != null)
+            {
+                ParticleSystem effect = Instantiate(matchEffectPrefab,
+                    center.transform.position,
+                    Quaternion.identity);
+                Destroy(effect.gameObject, 2f);
+            }
+            yield return new WaitForSeconds(0.15f);
+            SpawnBishop(bx, by, color);
+            yield break;
+        }
 
         if (rookMatch.Count == 4)
         {
@@ -419,7 +526,13 @@ public class PuzzleManager : MonoBehaviour
                 grid[p.x, p.y] = null;
                 Destroy(p.gameObject);
             }
-
+            if (matchEffectPrefab != null)
+            {
+                ParticleSystem effect = Instantiate(matchEffectPrefab,
+                    center.transform.position,
+                    Quaternion.identity);
+                Destroy(effect.gameObject, 2f);
+            }
             yield return new WaitForSeconds(0.15f);
             SpawnRook(rx, ry, color);
             yield break;
@@ -718,13 +831,15 @@ public class PuzzleManager : MonoBehaviour
             yield break;
 
         isProcessingMatches = true;
-        lastSwappedPiece = piece1;
 
-        // HAMLE SAYISINI HER SWAP'DE AZALT (BAŞARILI OLSUN OLMASIN)
+        // 🔥 SON SWAP KAYDI (KALE / ÖZEL TAŞ İÇİN)
+        lastSwappedA = piece1;
+        lastSwappedB = piece2;
+
         moveCountLeft--;
         UpdateUI();
 
-        // Grid'deki pozisyonları değiştir
+        // Grid pozisyonlarını değiştir
         int tempX = piece1.x;
         int tempY = piece1.y;
 
@@ -736,47 +851,50 @@ public class PuzzleManager : MonoBehaviour
         piece2.x = tempX;
         piece2.y = tempY;
 
-        // Animasyonlu yer değiştir
         float spacedCellSize = cellSize * spacingMultiplier;
 
-        Vector3 piece1Target = new Vector3(
-            piece1.x * spacedCellSize,
-            piece1.y * spacedCellSize,
-            0
-        );
-
-        Vector3 piece2Target = new Vector3(
-            piece2.x * spacedCellSize,
-            piece2.y * spacedCellSize,
-            0
-        );
+        Vector3 piece1Target = new Vector3(piece1.x * spacedCellSize, piece1.y * spacedCellSize, 0);
+        Vector3 piece2Target = new Vector3(piece2.x * spacedCellSize, piece2.y * spacedCellSize, 0);
 
         StartCoroutine(MovePiece(piece1.transform, piece1Target, 0.2f));
         StartCoroutine(MovePiece(piece2.transform, piece2Target, 0.2f));
 
         yield return new WaitForSeconds(0.25f);
 
-        // Match var mı kontrol et
+        // ♞ KNIGHT + PAWN ÖZEL ETKİ
+        if (
+            (piece1.pieceType == PieceType.Knight && piece2.pieceType == PieceType.Normal) ||
+            (piece2.pieceType == PieceType.Knight && piece1.pieceType == PieceType.Normal)
+        )
+        {
+            grid[piece1.x, piece1.y] = null;
+            grid[piece2.x, piece2.y] = null;
+
+            Destroy(piece1.gameObject);
+            Destroy(piece2.gameObject);
+
+            yield return StartCoroutine(SpawnKnightAttackers());
+            yield return StartCoroutine(DropPieces());
+            yield return StartCoroutine(FillEmptySpaces());
+            yield return StartCoroutine(CheckAndResolveMatchesAfterSwap());
+
+            isProcessingMatches = false;
+            yield break;
+        }
+
+        // Normal match kontrolü
         List<ChessPiece> matches = FindAllMatches();
 
         if (matches.Count > 0)
         {
-            Debug.Log($"[Swap] Başarılı! {matches.Count} eşleşme bulundu");
-
-            matches = FindAllMatches();
-
             yield return StartCoroutine(DestroyMatches(matches));
             yield return StartCoroutine(DropPieces());
             yield return StartCoroutine(FillEmptySpaces());
-
             yield return StartCoroutine(CheckAndResolveMatchesAfterSwap());
         }
         else
         {
-            // BAŞARISIZ SWAP - Match yok, geri al!
-            Debug.Log("[Swap] Başarısız! Geri alınıyor...");
-
-            // Pozisyonları geri al
+            // Geri al
             int temp2X = piece1.x;
             int temp2Y = piece1.y;
 
@@ -788,18 +906,8 @@ public class PuzzleManager : MonoBehaviour
             piece2.x = temp2X;
             piece2.y = temp2Y;
 
-            // Animasyonlu geri al
-            Vector3 piece1Original = new Vector3(
-                piece1.x * spacedCellSize,
-                piece1.y * spacedCellSize,
-                0
-            );
-
-            Vector3 piece2Original = new Vector3(
-                piece2.x * spacedCellSize,
-                piece2.y * spacedCellSize,
-                0
-            );
+            Vector3 piece1Original = new Vector3(piece1.x * spacedCellSize, piece1.y * spacedCellSize, 0);
+            Vector3 piece2Original = new Vector3(piece2.x * spacedCellSize, piece2.y * spacedCellSize, 0);
 
             StartCoroutine(MovePiece(piece1.transform, piece1Original, 0.15f));
             StartCoroutine(MovePiece(piece2.transform, piece2Original, 0.15f));
@@ -812,16 +920,11 @@ public class PuzzleManager : MonoBehaviour
         if (moveCountLeft <= 0 && !hasGameEnded)
         {
             hasGameEnded = true;
-            if (loseSound != null)
-            {
-                AudioSource.PlayClipAtPoint(loseSound, Camera.main.transform.position);
-            }
-            losePanel.transform.SetAsLastSibling();
+            AudioSource.PlayClipAtPoint(loseSound, Camera.main.transform.position);
             losePanel.SetActive(true);
-            Debug.Log("[Game] LOSE - Hamle bitti!");
-
         }
     }
+
 
     IEnumerator CheckAndResolveMatchesAfterSwap()
     {
@@ -946,6 +1049,478 @@ public class PuzzleManager : MonoBehaviour
         grid[x, y] = piece;
 
         Debug.Log($"[ROOK] Oluşturuldu ({x},{y}) Renk: {color}");
+    }
+
+
+
+    List<ChessPiece> Find5LineMatch(int startX, int startY, Vector2Int dir)
+    {
+        List<ChessPiece> result = new List<ChessPiece>();
+
+        ChessPiece first = grid[startX, startY];
+        if (first == null ||
+            first.pieceType != PieceType.Normal ||
+            first.pieceColor == PieceColor.Gray)
+            return result;
+
+        PieceColor color = first.pieceColor;
+        result.Add(first);
+
+        for (int i = 1; i < 5; i++)
+        {
+            int nx = startX + dir.x * i;
+            int ny = startY + dir.y * i;
+
+            if (!IsValidPosition(nx, ny))
+                return new List<ChessPiece>();
+
+            ChessPiece next = grid[nx, ny];
+            if (next == null ||
+                next.pieceType != PieceType.Normal ||
+                next.pieceColor != color)
+                return new List<ChessPiece>();
+
+            result.Add(next);
+        }
+
+        return result.Count == 5 ? result : new List<ChessPiece>();
+    }
+
+    List<ChessPiece> FindBishopMatches()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (grid[x, y] == null) continue;
+
+                // YATAY 5
+                var horizontal = Find5LineMatch(x, y, Vector2Int.right);
+                if (horizontal.Count == 5)
+                    return horizontal;
+
+                // DİKEY 5
+                var vertical = Find5LineMatch(x, y, Vector2Int.up);
+                if (vertical.Count == 5)
+                    return vertical;
+            }
+        }
+
+        return new List<ChessPiece>();
+    }
+    void SpawnBishop(int x, int y, PieceColor color)
+    {
+        float spacedCellSize = cellSize * spacingMultiplier;
+
+        GameObject bishop = Instantiate(bishopPrefab, gridOrigin);
+        if (bishopSound != null)
+            AudioSource.PlayClipAtPoint(bishopSound, Camera.main.transform.position);
+
+        bishop.transform.localPosition = new Vector3(
+            x * spacedCellSize,
+            y * spacedCellSize,
+            0
+        );
+
+        ChessPiece piece = bishop.GetComponent<ChessPiece>();
+        piece.x = x;
+        piece.y = y;
+        piece.pieceColor = color;
+        piece.pieceType = PieceType.Bishop;
+
+        grid[x, y] = piece;
+
+        Debug.Log($"[BISHOP] Oluşturuldu ({x},{y}) Renk: {color}");
+    }
+
+
+
+    List<ChessPiece> FindQueenMatches()
+    {
+        for (int x = 1; x < width - 1; x++)
+        {
+            for (int y = 1; y < height - 1; y++)
+            {
+                ChessPiece center = grid[x, y];
+                if (center == null || center.pieceType != PieceType.Normal)
+                    continue;
+
+                PieceColor color = center.pieceColor;
+
+                ChessPiece left = grid[x - 1, y];
+                ChessPiece right = grid[x + 1, y];
+                ChessPiece up = grid[x, y + 1];
+                ChessPiece down = grid[x, y - 1];
+
+                // ⊥ (T yukarı)
+                if (left && right && up &&
+                    left.pieceColor == color &&
+                    right.pieceColor == color &&
+                    up.pieceColor == color)
+                {
+                    return new List<ChessPiece> { center, left, right, up };
+                }
+
+                // ⊤ (T aşağı)
+                if (left && right && down &&
+                    left.pieceColor == color &&
+                    right.pieceColor == color &&
+                    down.pieceColor == color)
+                {
+                    return new List<ChessPiece> { center, left, right, down };
+                }
+
+                // ⊣ (T sola)
+                if (up && down && left &&
+                    up.pieceColor == color &&
+                    down.pieceColor == color &&
+                    left.pieceColor == color)
+                {
+                    return new List<ChessPiece> { center, up, down, left };
+                }
+
+                // ⊢ (T sağa)
+                if (up && down && right &&
+                    up.pieceColor == color &&
+                    down.pieceColor == color &&
+                    right.pieceColor == color)
+                {
+                    return new List<ChessPiece> { center, up, down, right };
+                }
+            }
+        }
+
+        return new List<ChessPiece>();
+    }
+    void SpawnQueen(int x, int y, PieceColor color)
+    {
+        float spacedCellSize = cellSize * spacingMultiplier;
+
+        GameObject queen = Instantiate(queenPrefab, gridOrigin);
+        if (queenSound != null)
+            AudioSource.PlayClipAtPoint(queenSound, Camera.main.transform.position);
+
+        queen.transform.localPosition = new Vector3(
+            x * spacedCellSize,
+            y * spacedCellSize,
+            0
+        );
+
+        ChessPiece piece = queen.GetComponent<ChessPiece>();
+        piece.x = x;
+        piece.y = y;
+        piece.pieceColor = color;
+        piece.pieceType = PieceType.Queen;
+
+        grid[x, y] = piece;
+
+        Debug.Log($"[QUEEN] Oluşturuldu ({x},{y}) Renk: {color}");
+    }
+
+
+    List<ChessPiece> FindKingMatches()
+    {
+        Vector2Int[][] patterns = new Vector2Int[][]
+        {
+        new[] { new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(1,0) },
+        new[] { new Vector2Int(0,0), new Vector2Int(1,0), new Vector2Int(2,0), new Vector2Int(0,1) },
+        new[] { new Vector2Int(0,0), new Vector2Int(0,1), new Vector2Int(0,2), new Vector2Int(-1,0) },
+        new[] { new Vector2Int(0,0), new Vector2Int(-1,0), new Vector2Int(-2,0), new Vector2Int(0,1) },
+        };
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                ChessPiece basePiece = grid[x, y];
+                if (basePiece == null || basePiece.pieceType != PieceType.Normal)
+                    continue;
+
+                foreach (var pattern in patterns)
+                {
+                    List<ChessPiece> match = new List<ChessPiece>();
+                    PieceColor color = basePiece.pieceColor;
+
+                    bool valid = true;
+
+                    foreach (var offset in pattern)
+                    {
+                        int nx = x + offset.x;
+                        int ny = y + offset.y;
+
+                        if (!IsValidPosition(nx, ny) ||
+                            grid[nx, ny] == null ||
+                            grid[nx, ny].pieceColor != color ||
+                            grid[nx, ny].pieceType != PieceType.Normal)
+                        {
+                            valid = false;
+                            break;
+                        }
+
+                        match.Add(grid[nx, ny]);
+                    }
+
+                    if (valid)
+                        return match;
+                }
+            }
+        }
+
+        return new List<ChessPiece>();
+    }
+    void SpawnKing(int x, int y, PieceColor color)
+    {
+        float spacedCellSize = cellSize * spacingMultiplier;
+
+        GameObject king = Instantiate(kingPrefab, gridOrigin);
+        if (kingSound != null)
+            AudioSource.PlayClipAtPoint(kingSound, Camera.main.transform.position);
+
+        king.transform.localPosition = new Vector3(
+            x * spacedCellSize,
+            y * spacedCellSize,
+            0
+        );
+
+        ChessPiece piece = king.GetComponent<ChessPiece>();
+        piece.x = x;
+        piece.y = y;
+        piece.pieceColor = color;
+        piece.pieceType = PieceType.King;
+
+        grid[x, y] = piece;
+
+        Debug.Log($"[KING] Oluşturuldu ({x},{y}) Renk: {color}");
+    }
+    List<ChessPiece> GetAllNormalPawns()
+    {
+        List<ChessPiece> pawns = new List<ChessPiece>();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                ChessPiece p = grid[x, y];
+                if (p != null && p.pieceType == PieceType.Normal)
+                {
+                    pawns.Add(p);
+                }
+            }
+        }
+
+        return pawns;
+    }
+    bool IsKnightPawnMatch(List<ChessPiece> match)
+    {
+        bool hasKnight = false;
+        bool hasPawn = false;
+
+        foreach (var p in match)
+        {
+            if (p.pieceType == PieceType.Knight) hasKnight = true;
+            if (p.pieceType == PieceType.Normal) hasPawn = true;
+        }
+
+        return hasKnight && hasPawn;
+    }
+    IEnumerator SpawnKnightAttackers()
+    {
+        List<ChessPiece> pawns = new List<ChessPiece>();
+
+        // SADECE NORMAL PİYONLAR
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (grid[x, y] != null &&
+                    grid[x, y].pieceType == PieceType.Normal)
+                {
+                    pawns.Add(grid[x, y]);
+                }
+            }
+        }
+
+        int attackCount = Mathf.Min(4, pawns.Count);
+        float spacedCellSize = cellSize * spacingMultiplier;
+
+        for (int i = 0; i < attackCount; i++)
+        {
+            ChessPiece target = pawns[Random.Range(0, pawns.Count)];
+            pawns.Remove(target);
+
+            if (target == null) continue;
+
+            // 🐎 KNIGHT OLUŞTUR (GEÇİCİ)
+            GameObject knight = Instantiate(knightPrefab, gridOrigin);
+            knight.transform.position =
+                target.transform.position + Vector3.up * knightSpawnHeight;
+
+            // Hedef pozisyon
+            Vector3 targetPos = new Vector3(
+                target.x * spacedCellSize,
+                target.y * spacedCellSize,
+                0
+            );
+
+            // ✈️ UÇUŞ
+            yield return StartCoroutine(
+                FlyKnightToTarget(knight.transform, targetPos)
+            );
+
+            // 🔊 SES
+            if (knightAttackSound != null)
+                AudioSource.PlayClipAtPoint(knightAttackSound, targetPos);
+
+            // 💥 EFEKT
+            if (knightAttackEffect != null)
+            {
+                ParticleSystem fx = Instantiate(
+                    knightAttackEffect,
+                    targetPos,
+                    Quaternion.identity
+                );
+                Destroy(fx.gameObject, 2f);
+            }
+
+            // ❌ PİYONU YOK ET
+            grid[target.x, target.y] = null;
+            Destroy(target.gameObject);
+
+            // 🗑️ KNIGHT'I SİL
+            Destroy(knight);
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        // ⬇️ ANINDA DÜŞÜR
+        yield return StartCoroutine(DropPieces());
+        yield return StartCoroutine(FillEmptySpaces());
+    }
+
+    IEnumerator FlyKnightToTarget(Transform knight, Vector3 targetPos)
+    {
+        Vector3 startPos = knight.position;
+        float elapsed = 0f;
+
+        while (elapsed < knightFlyDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / knightFlyDuration;
+
+            // Parabolik uçuş
+            float height = Mathf.Sin(t * Mathf.PI) * 1.2f;
+
+            knight.position = Vector3.Lerp(startPos, targetPos, t)
+                               + Vector3.up * height;
+
+            yield return null;
+        }
+
+        knight.position = targetPos;
+    }
+
+
+    void SpawnAttackerKnight(ChessPiece target)
+    {
+        Vector3 spawnPos = target.transform.position + Vector3.up * 3f;
+
+        GameObject knight = Instantiate(
+            knightPrefab,
+            spawnPos,
+            Quaternion.identity
+        );
+
+        StartCoroutine(KnightAttackRoutine(knight, target));
+    }
+    IEnumerator KnightAttackRoutine(GameObject knight, ChessPiece target)
+    {
+        float t = 0f;
+        Vector3 start = knight.transform.position;
+        Vector3 end = target.transform.position;
+
+        while (t < 1f)
+        {
+            t += Time.deltaTime * 2.5f;
+            knight.transform.position = Vector3.Lerp(start, end, t);
+            yield return null;
+        }
+
+        // Pawn yok et
+        if (target != null)
+        {
+            grid[target.x, target.y] = null;
+
+            if (matchEffectPrefab != null)
+                Instantiate(matchEffectPrefab, target.transform.position, Quaternion.identity);
+
+            Destroy(target.gameObject);
+        }
+
+        Destroy(knight);
+    }
+
+
+
+    IEnumerator ActivateRookPower(ChessPiece rook)
+    {
+        if (rook == null)
+            yield break;
+
+        int rx = rook.x;
+        int ry = rook.y;
+
+        List<ChessPiece> toDestroy = new List<ChessPiece>();
+
+        // 🟦 SATIR (YATAY)
+        for (int x = 0; x < width; x++)
+        {
+            if (grid[x, ry] != null && grid[x, ry] != rook)
+            {
+                toDestroy.Add(grid[x, ry]);
+            }
+        }
+
+        // 🟦 SÜTUN (DİKEY)
+        for (int y = 0; y < height; y++)
+        {
+            if (grid[rx, y] != null && grid[rx, y] != rook)
+            {
+                toDestroy.Add(grid[rx, y]);
+            }
+        }
+
+        // 🔊 SES
+        if (rookSound != null)
+            AudioSource.PlayClipAtPoint(rookSound, Camera.main.transform.position);
+
+        yield return new WaitForSeconds(0.05f);
+
+        // 💥 YOK ETME
+        foreach (ChessPiece piece in toDestroy)
+        {
+            if (piece == null) continue;
+
+            if (matchEffectPrefab != null)
+            {
+                ParticleSystem fx = Instantiate(
+                    matchEffectPrefab,
+                    piece.transform.position,
+                    Quaternion.identity
+                );
+                Destroy(fx.gameObject, 2f);
+            }
+
+            grid[piece.x, piece.y] = null;
+            Destroy(piece.gameObject);
+        }
+
+        // ❌ KALEYİ DE YOK ET
+        grid[rook.x, rook.y] = null;
+        Destroy(rook.gameObject);
+
+        // ⬇️ ANINDA DÜŞÜR
+        yield return StartCoroutine(DropPieces());
+        yield return StartCoroutine(FillEmptySpaces());
     }
 
 }
