@@ -1429,10 +1429,14 @@ MonoBehaviour:
   - {fileID: 5134387183009206581, guid: eb3ecc56b78305141bff6958b2d02676, type: 3}
   - {fileID: 994435135071776082, guid: 661ab0457b4c18246a96859b77c56198, type: 3}
   - {fileID: 4491946982248043459, guid: 8ed7f8f8bc04b0a4fb54ac31e4dafed0, type: 3}
+  knightPrefab: {fileID: 3108683437490700748, guid: 9ae1a636cc3052f4ebb92f4b92ee9bd3, type: 3}
+  rookPrefab: {fileID: 527105398378325855, guid: 56621882c1a04de4da0af72a99e5257d, type: 3}
   gridOrigin: {fileID: 1271926281}
   gridVerticalOffset: -2.49
   spacingMultiplier: 1.249
   matchSound: {fileID: 8300000, guid: 03c8fe569f4c5ab4a95be39110cbef99, type: 3}
+  knightSound: {fileID: 8300000, guid: 29a6b672d26486845a3d6118afc243ca, type: 3}
+  rookSound: {fileID: 8300000, guid: 9459272762aaa40429781a12ed63ef64, type: 3}
   matchEffectPrefab: {fileID: 6609521088092039092, guid: cb124c4a9f6d9b84b9b98e4f937419d5, type: 3}
 --- !u!1 &1338157236
 GameObject:

@@ -37,6 +37,9 @@ public class PuzzleManager : MonoBehaviour
     public int height = 8;
 
     public GameObject[] pawnPrefabs;
+    public GameObject knightPrefab;
+    public GameObject rookPrefab;
+
     private ChessPiece[,] grid;
 
     public Transform gridOrigin;
@@ -53,6 +56,10 @@ public class PuzzleManager : MonoBehaviour
 
     [Header("Match System")]
     public AudioClip matchSound;
+    public AudioClip knightSound;
+    public AudioClip rookSound;
+
+
     public ParticleSystem matchEffectPrefab;
 
     private bool isProcessingMatches = false;
@@ -282,9 +289,40 @@ public class PuzzleManager : MonoBehaviour
 
     // ================= MATCH SİSTEMİ =================
 
-    System.Collections.Generic.List<ChessPiece> FindAllMatches()
+    List<ChessPiece> FindAllMatches()
     {
-        System.Collections.Generic.HashSet<ChessPiece> matchSet = new System.Collections.Generic.HashSet<ChessPiece>();
+        HashSet<ChessPiece> matchSet = new HashSet<ChessPiece>();
+
+        for (int x = 0; x < width - 1; x++)
+        {
+            for (int y = 0; y < height - 1; y++)
+            {
+                ChessPiece a = grid[x, y];
+                ChessPiece b = grid[x + 1, y];
+                ChessPiece c = grid[x, y + 1];
+                ChessPiece d = grid[x + 1, y + 1];
+
+                if (a != null && b != null && c != null && d != null)
+                {
+                    if (a.pieceType == PieceType.Normal &&
+                        b.pieceType == PieceType.Normal &&
+                        c.pieceType == PieceType.Normal &&
+                        d.pieceType == PieceType.Normal &&
+                        a.pieceColor == b.pieceColor &&
+                        a.pieceColor == c.pieceColor &&
+                        a.pieceColor == d.pieceColor)
+                    {
+                        // 2x2 KARE BULUNDU!
+                        matchSet.Add(a);
+                        matchSet.Add(b);
+                        matchSet.Add(c);
+                        matchSet.Add(d);
+
+                        Debug.Log($"[2x2 Square] Bulundu: ({x},{y}) - Renk: {a.pieceColor}");
+                    }
+                }
+            }
+        }
 
         for (int y = 0; y < height; y++)
         {
@@ -296,7 +334,10 @@ public class PuzzleManager : MonoBehaviour
 
                 if (p1 != null && p2 != null && p3 != null)
                 {
-                    if (p1.pieceColor == p2.pieceColor &&
+                    if (p1.pieceType == PieceType.Normal &&
+                        p2.pieceType == PieceType.Normal &&
+                        p3.pieceType == PieceType.Normal &&
+                        p1.pieceColor == p2.pieceColor &&
                         p2.pieceColor == p3.pieceColor)
                     {
                         matchSet.Add(p1);
@@ -317,7 +358,10 @@ public class PuzzleManager : MonoBehaviour
 
                 if (p1 != null && p2 != null && p3 != null)
                 {
-                    if (p1.pieceColor == p2.pieceColor &&
+                    if (p1.pieceType == PieceType.Normal &&
+                        p2.pieceType == PieceType.Normal &&
+                        p3.pieceType == PieceType.Normal &&
+                        p1.pieceColor == p2.pieceColor &&
                         p2.pieceColor == p3.pieceColor)
                     {
                         matchSet.Add(p1);
@@ -328,9 +372,8 @@ public class PuzzleManager : MonoBehaviour
             }
         }
 
-        return new System.Collections.Generic.List<ChessPiece>(matchSet);
+        return new List<ChessPiece>(matchSet);
     }
-
     IEnumerator CheckAndResolveMatches()
     {
         yield return new WaitForSeconds(0.5f);
@@ -356,34 +399,125 @@ public class PuzzleManager : MonoBehaviour
         isProcessingMatches = false;
     }
 
-    IEnumerator DestroyMatches(System.Collections.Generic.List<ChessPiece> matches)
+    IEnumerator DestroyMatches(List<ChessPiece> matches)
     {
         if (matchSound != null)
             AudioSource.PlayClipAtPoint(matchSound, Camera.main.transform.position);
+
+        List<ChessPiece> squareMatches = Find2x2SquareInMatches(matches);
+        List<ChessPiece> rookMatch = FindRookMatches();
+
+        if (rookMatch.Count == 4)
+        {
+            ChessPiece center = rookMatch[1];
+            int rx = center.x;
+            int ry = center.y;
+            PieceColor color = center.pieceColor;
+
+            foreach (ChessPiece p in rookMatch)
+            {
+                grid[p.x, p.y] = null;
+                Destroy(p.gameObject);
+            }
+
+            yield return new WaitForSeconds(0.15f);
+            SpawnRook(rx, ry, color);
+            yield break;
+        }
+
+        if (squareMatches.Count == 4)
+        {
+            Debug.Log("[2x2 Square] 4 tile yok edilip Knight oluşturuluyor!");
+
+            // Sol alt tile'ın pozisyonunu ve rengini al
+            ChessPiece bottomLeft = squareMatches[0];
+            int knightX = bottomLeft.x;
+            int knightY = bottomLeft.y;
+            PieceColor knightColor = bottomLeft.pieceColor;
+
+            // 4 tile'ı yok et
+            foreach (ChessPiece piece in squareMatches)
+            {
+                if (piece != null)
+                {
+                    if (matchEffectPrefab != null)
+                    {
+                        ParticleSystem effect = Instantiate(matchEffectPrefab,
+                            piece.transform.position,
+                            Quaternion.identity);
+                        Destroy(effect.gameObject, 2f);
+                    }
+
+                    grid[piece.x, piece.y] = null;
+                    Destroy(piece.gameObject);
+                }
+            }
+
+            yield return new WaitForSeconds(0.2f);
+
+            SpawnKnight(knightX, knightY, knightColor);
+
+            // Kalan match'leri square listesinden çıkar
+            foreach (ChessPiece piece in squareMatches)
+            {
+                matches.Remove(piece);
+            }
+        }
 
         foreach (ChessPiece piece in matches)
         {
             if (piece == null) continue;
             if (grid[piece.x, piece.y] != piece) continue;
 
-            if (piece != null)
+            if (matchEffectPrefab != null)
             {
-                if (matchEffectPrefab != null)
-                {
-                    ParticleSystem effect = Instantiate(matchEffectPrefab,
-                        piece.transform.position,
-                        Quaternion.identity);
-                    Destroy(effect.gameObject, 2f);
-                }
-
-                grid[piece.x, piece.y] = null;
-                Destroy(piece.gameObject);
+                ParticleSystem effect = Instantiate(matchEffectPrefab,
+                    piece.transform.position,
+                    Quaternion.identity);
+                Destroy(effect.gameObject, 2f);
             }
+
+            grid[piece.x, piece.y] = null;
+            Destroy(piece.gameObject);
         }
 
         yield return new WaitForSeconds(0.2f);
     }
+    List<ChessPiece> Find2x2SquareInMatches(List<ChessPiece> matches)
+    {
+        // Match'ler içinde 2x2 kare var mı bul
+        for (int x = 0; x < width - 1; x++)
+        {
+            for (int y = 0; y < height - 1; y++)
+            {
+                ChessPiece a = grid[x, y];
+                ChessPiece b = grid[x + 1, y];
+                ChessPiece c = grid[x, y + 1];
+                ChessPiece d = grid[x + 1, y + 1];
 
+                if (a != null && b != null && c != null && d != null)
+                {
+                    if (matches.Contains(a) && matches.Contains(b) &&
+                        matches.Contains(c) && matches.Contains(d))
+                    {
+                        if (a.pieceType == PieceType.Normal &&
+                            b.pieceType == PieceType.Normal &&
+                            c.pieceType == PieceType.Normal &&
+                            d.pieceType == PieceType.Normal &&
+                            a.pieceColor == b.pieceColor &&
+                            a.pieceColor == c.pieceColor &&
+                            a.pieceColor == d.pieceColor)
+                        {
+                            // 2x2 kare bulundu!
+                            return new List<ChessPiece> { a, b, c, d };
+                        }
+                    }
+                }
+            }
+        }
+
+        return new List<ChessPiece>();
+    }
     IEnumerator DropPieces()
     {
         float spacedCellSize = cellSize * spacingMultiplier;
@@ -629,8 +763,6 @@ public class PuzzleManager : MonoBehaviour
         {
             Debug.Log($"[Swap] Başarılı! {matches.Count} eşleşme bulundu");
 
-            yield return StartCoroutine(ResolveKnightSquare(lastSwappedPiece));
-
             matches = FindAllMatches();
 
             yield return StartCoroutine(DestroyMatches(matches));
@@ -712,93 +844,12 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
-
-    List<ChessPiece> Find2x2Square(ChessPiece trigger)
-    {
-        List<ChessPiece> result = new List<ChessPiece>();
-
-        if (trigger == null)
-            return result;
-
-        int x = trigger.x;
-        int y = trigger.y;
-
-        // Trigger etrafındaki 4 olası 2x2 kombinasyon
-        int[,] offsets =
-        {
-        { 0, 0 },
-        { -1, 0 },
-        { 0, -1 },
-        { -1, -1 }
-    };
-
-        for (int i = 0; i < offsets.GetLength(0); i++)
-        {
-            int bx = x + offsets[i, 0];
-            int by = y + offsets[i, 1];
-
-            if (bx < 0 || by < 0 || bx >= width - 1 || by >= height - 1)
-                continue;
-
-            ChessPiece a = grid[bx, by];
-            ChessPiece b = grid[bx + 1, by];
-            ChessPiece c = grid[bx, by + 1];
-            ChessPiece d = grid[bx + 1, by + 1];
-
-            if (a && b && c && d)
-            {
-                if (a.pieceType == PieceType.Normal &&
-                    b.pieceType == PieceType.Normal &&
-                    c.pieceType == PieceType.Normal &&
-                    d.pieceType == PieceType.Normal &&
-                    a.pieceColor == b.pieceColor &&
-                    a.pieceColor == c.pieceColor &&
-                    a.pieceColor == d.pieceColor)
-                {
-                    result.Add(a);
-                    result.Add(b);
-                    result.Add(c);
-                    result.Add(d);
-                    return result;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    IEnumerator ResolveKnightSquare(ChessPiece triggerPiece)
-    {
-        if (triggerPiece == null)
-            yield break;
-
-        List<ChessPiece> square = Find2x2Square(triggerPiece);
-
-        if (square.Count != 4)
-            yield break;
-
-        // 🔴 Trigger piece ASLA yok edilmez
-        foreach (ChessPiece p in square)
-        {
-            if (p == triggerPiece)
-                continue;
-
-            grid[p.x, p.y] = null;
-            Destroy(p.gameObject);
-        }
-
-        triggerPiece.pieceType = PieceType.Knight;
-        triggerPiece.name = "Knight";
-
-        yield return null;
-    }
-
     void SpawnKnight(int x, int y, PieceColor color)
     {
         float spacedCellSize = cellSize * spacingMultiplier;
 
-        GameObject knight = Instantiate(pawnPrefabs[0], gridOrigin);
-        knight.name = "Knight";
+        GameObject knight = Instantiate(knightPrefab, gridOrigin);
+        AudioSource.PlayClipAtPoint(knightSound, Camera.main.transform.position);
 
         knight.transform.localPosition = new Vector3(
             x * spacedCellSize,
@@ -813,6 +864,88 @@ public class PuzzleManager : MonoBehaviour
         piece.pieceType = PieceType.Knight;
 
         grid[x, y] = piece;
+    }
+
+
+
+    List<ChessPiece> Find4LineMatch(int startX, int startY, Vector2Int dir)
+    {
+        List<ChessPiece> result = new List<ChessPiece>();
+
+        ChessPiece first = grid[startX, startY];
+        if (first == null || first.pieceType != PieceType.Normal)
+            return result;
+
+        PieceColor color = first.pieceColor;
+        result.Add(first);
+
+        for (int i = 1; i < 4; i++)
+        {
+            int nx = startX + dir.x * i;
+            int ny = startY + dir.y * i;
+
+            if (!IsValidPosition(nx, ny))
+                return new List<ChessPiece>();
+
+            ChessPiece next = grid[nx, ny];
+            if (next == null ||
+                next.pieceType != PieceType.Normal ||
+                next.pieceColor != color)
+                return new List<ChessPiece>();
+
+            result.Add(next);
+        }
+
+        return result.Count == 4 ? result : new List<ChessPiece>();
+    }
+
+    List<ChessPiece> FindRookMatches()
+    {
+        List<ChessPiece> rookMatches = new List<ChessPiece>();
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (grid[x, y] == null) continue;
+
+                // YATAY 4
+                var horizontal = Find4LineMatch(x, y, Vector2Int.right);
+                if (horizontal.Count == 4)
+                    return horizontal;
+
+                // DİKEY 4
+                var vertical = Find4LineMatch(x, y, Vector2Int.up);
+                if (vertical.Count == 4)
+                    return vertical;
+            }
+        }
+
+        return rookMatches;
+    }
+    void SpawnRook(int x, int y, PieceColor color)
+    {
+        float spacedCellSize = cellSize * spacingMultiplier;
+
+        GameObject rook = Instantiate(rookPrefab, gridOrigin);
+        rook.name = "Rook";
+        AudioSource.PlayClipAtPoint(rookSound, Camera.main.transform.position);
+
+        rook.transform.localPosition = new Vector3(
+            x * spacedCellSize,
+            y * spacedCellSize,
+            0
+        );
+
+        ChessPiece piece = rook.GetComponent<ChessPiece>();
+        piece.x = x;
+        piece.y = y;
+        piece.pieceColor = color;
+        piece.pieceType = PieceType.Rook;
+
+        grid[x, y] = piece;
+
+        Debug.Log($"[ROOK] Oluşturuldu ({x},{y}) Renk: {color}");
     }
 
 }
