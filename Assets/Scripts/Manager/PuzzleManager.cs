@@ -68,8 +68,8 @@ public class PuzzleManager : MonoBehaviour
     public AudioClip queenSound;
     public AudioClip kingSound;
 
-    public AudioClip knightAttackSound;
-    public ParticleSystem knightAttackEffect;
+    public GameObject destroyEffect;
+    public AudioClip knightHitSound;
 
 
     public ParticleSystem matchEffectPrefab;
@@ -832,14 +832,14 @@ public class PuzzleManager : MonoBehaviour
 
         isProcessingMatches = true;
 
-        // 🔥 SON SWAP KAYDI (KALE / ÖZEL TAŞ İÇİN)
+        // 🔥 Son swap kaydı (kale / özel taşlar için)
         lastSwappedA = piece1;
         lastSwappedB = piece2;
 
         moveCountLeft--;
         UpdateUI();
 
-        // Grid pozisyonlarını değiştir
+        // ================= SWAP =================
         int tempX = piece1.x;
         int tempY = piece1.y;
 
@@ -853,27 +853,34 @@ public class PuzzleManager : MonoBehaviour
 
         float spacedCellSize = cellSize * spacingMultiplier;
 
-        Vector3 piece1Target = new Vector3(piece1.x * spacedCellSize, piece1.y * spacedCellSize, 0);
-        Vector3 piece2Target = new Vector3(piece2.x * spacedCellSize, piece2.y * spacedCellSize, 0);
+        Vector3 piece1Target = new Vector3(
+            piece1.x * spacedCellSize,
+            piece1.y * spacedCellSize,
+            0
+        );
+
+        Vector3 piece2Target = new Vector3(
+            piece2.x * spacedCellSize,
+            piece2.y * spacedCellSize,
+            0
+        );
 
         StartCoroutine(MovePiece(piece1.transform, piece1Target, 0.2f));
         StartCoroutine(MovePiece(piece2.transform, piece2Target, 0.2f));
 
         yield return new WaitForSeconds(0.25f);
 
-        // ♞ KNIGHT + PAWN ÖZEL ETKİ
-        if (
-            (piece1.pieceType == PieceType.Knight && piece2.pieceType == PieceType.Normal) ||
-            (piece2.pieceType == PieceType.Knight && piece1.pieceType == PieceType.Normal)
-        )
+        // ================= MATCH KONTROL =================
+        List<ChessPiece> matches = FindAllMatches();
+
+        // ♞ KNIGHT + PAWN ÖZEL DURUMU (MATCH ÜZERİNDEN)
+        if (IsKnightPawnMatch(matches))
         {
-            grid[piece1.x, piece1.y] = null;
-            grid[piece2.x, piece2.y] = null;
+            List<ChessPiece> pawnTargets = matches.FindAll(
+                p => p.pieceType == PieceType.Normal
+            );
 
-            Destroy(piece1.gameObject);
-            Destroy(piece2.gameObject);
-
-            yield return StartCoroutine(SpawnKnightAttackers());
+            yield return StartCoroutine(SpawnKnightAttackers(pawnTargets));
             yield return StartCoroutine(DropPieces());
             yield return StartCoroutine(FillEmptySpaces());
             yield return StartCoroutine(CheckAndResolveMatchesAfterSwap());
@@ -882,9 +889,7 @@ public class PuzzleManager : MonoBehaviour
             yield break;
         }
 
-        // Normal match kontrolü
-        List<ChessPiece> matches = FindAllMatches();
-
+        // ================= NORMAL MATCH =================
         if (matches.Count > 0)
         {
             yield return StartCoroutine(DestroyMatches(matches));
@@ -894,7 +899,7 @@ public class PuzzleManager : MonoBehaviour
         }
         else
         {
-            // Geri al
+            // ❌ Match yok → geri al
             int temp2X = piece1.x;
             int temp2Y = piece1.y;
 
@@ -906,8 +911,17 @@ public class PuzzleManager : MonoBehaviour
             piece2.x = temp2X;
             piece2.y = temp2Y;
 
-            Vector3 piece1Original = new Vector3(piece1.x * spacedCellSize, piece1.y * spacedCellSize, 0);
-            Vector3 piece2Original = new Vector3(piece2.x * spacedCellSize, piece2.y * spacedCellSize, 0);
+            Vector3 piece1Original = new Vector3(
+                piece1.x * spacedCellSize,
+                piece1.y * spacedCellSize,
+                0
+            );
+
+            Vector3 piece2Original = new Vector3(
+                piece2.x * spacedCellSize,
+                piece2.y * spacedCellSize,
+                0
+            );
 
             StartCoroutine(MovePiece(piece1.transform, piece1Original, 0.15f));
             StartCoroutine(MovePiece(piece2.transform, piece2Original, 0.15f));
@@ -917,13 +931,18 @@ public class PuzzleManager : MonoBehaviour
 
         isProcessingMatches = false;
 
+        // ================= LOSE KONTROL =================
         if (moveCountLeft <= 0 && !hasGameEnded)
         {
             hasGameEnded = true;
-            AudioSource.PlayClipAtPoint(loseSound, Camera.main.transform.position);
+
+            if (loseSound != null)
+                AudioSource.PlayClipAtPoint(loseSound, Camera.main.transform.position);
+
             losePanel.SetActive(true);
         }
     }
+
 
 
     IEnumerator CheckAndResolveMatchesAfterSwap()
@@ -1323,101 +1342,80 @@ public class PuzzleManager : MonoBehaviour
 
         return hasKnight && hasPawn;
     }
-    IEnumerator SpawnKnightAttackers()
+    IEnumerator SpawnKnightAttackers(List<ChessPiece> targetPawns)
     {
-        List<ChessPiece> pawns = new List<ChessPiece>();
-
-        // SADECE NORMAL PİYONLAR
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if (grid[x, y] != null &&
-                    grid[x, y].pieceType == PieceType.Normal)
-                {
-                    pawns.Add(grid[x, y]);
-                }
-            }
-        }
-
-        int attackCount = Mathf.Min(4, pawns.Count);
         float spacedCellSize = cellSize * spacingMultiplier;
 
-        for (int i = 0; i < attackCount; i++)
+        foreach (ChessPiece target in targetPawns)
         {
-            ChessPiece target = pawns[Random.Range(0, pawns.Count)];
-            pawns.Remove(target);
+            if (target == null)
+                continue;
 
-            if (target == null) continue;
+            Vector3 spawnPos = new Vector3(
+                target.x * spacedCellSize,
+                target.y * spacedCellSize + 6f,
+                0
+            );
 
-            // 🐎 KNIGHT OLUŞTUR (GEÇİCİ)
-            GameObject knight = Instantiate(knightPrefab, gridOrigin);
-            knight.transform.position =
-                target.transform.position + Vector3.up * knightSpawnHeight;
+            GameObject knight = Instantiate(
+                knightPrefab,
+                spawnPos,
+                Quaternion.identity,
+                transform
+            );
 
-            // Hedef pozisyon
             Vector3 targetPos = new Vector3(
                 target.x * spacedCellSize,
                 target.y * spacedCellSize,
                 0
             );
 
-            // ✈️ UÇUŞ
             yield return StartCoroutine(
                 FlyKnightToTarget(knight.transform, targetPos)
             );
 
-            // 🔊 SES
-            if (knightAttackSound != null)
-                AudioSource.PlayClipAtPoint(knightAttackSound, targetPos);
-
-            // 💥 EFEKT
-            if (knightAttackEffect != null)
-            {
-                ParticleSystem fx = Instantiate(
-                    knightAttackEffect,
-                    targetPos,
-                    Quaternion.identity
-                );
-                Destroy(fx.gameObject, 2f);
-            }
-
-            // ❌ PİYONU YOK ET
+            // GRID TEMİZLE
             grid[target.x, target.y] = null;
-            Destroy(target.gameObject);
 
-            // 🗑️ KNIGHT'I SİL
+            // EFEKT
+            if (destroyEffect != null)
+                Instantiate(destroyEffect, targetPos, Quaternion.identity);
+
+            // SES
+            if (knightHitSound != null)
+                AudioSource.PlayClipAtPoint(
+                    knightHitSound,
+                    Camera.main.transform.position
+                );
+
+            Destroy(target.gameObject);
             Destroy(knight);
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.05f);
         }
-
-        // ⬇️ ANINDA DÜŞÜR
-        yield return StartCoroutine(DropPieces());
-        yield return StartCoroutine(FillEmptySpaces());
     }
+
+
 
     IEnumerator FlyKnightToTarget(Transform knight, Vector3 targetPos)
     {
-        Vector3 startPos = knight.position;
+        float duration = 0.35f;
         float elapsed = 0f;
+        Vector3 startPos = knight.position;
 
-        while (elapsed < knightFlyDuration)
+        while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / knightFlyDuration;
+            float t = elapsed / duration;
 
-            // Parabolik uçuş
-            float height = Mathf.Sin(t * Mathf.PI) * 1.2f;
-
-            knight.position = Vector3.Lerp(startPos, targetPos, t)
-                               + Vector3.up * height;
+            knight.position = Vector3.Lerp(startPos, targetPos, t);
 
             yield return null;
         }
 
         knight.position = targetPos;
     }
+
 
 
     void SpawnAttackerKnight(ChessPiece target)
